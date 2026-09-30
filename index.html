@@ -13,102 +13,94 @@
       <label>Tenant host
         <input id="tenant" type="text" spellcheck="false" placeholder="clearinsights.brightpattern.com">
       </label>
-      <label>Agent Desktop path
-        <input id="desktop-path" type="text" spellcheck="false" placeholder="/agentdesktop/">
+      <label>integrationKey
+        <input id="opt-key" type="text" spellcheck="false" placeholder="(random per load)">
       </label>
+      <label class="check"><input id="opt-adaptive" type="checkbox"> adaptiveWidth</label>
+      <label class="check"><input id="opt-no-popup" type="checkbox"> disableNewInteractionPopup</label>
+      <label class="check"><input id="opt-standalone" type="checkbox"> standalone (no UI)</label>
       <button type="submit">Reload</button>
       <span id="adapter-status" class="badge">adapter: loading…</span>
     </form>
   </header>
 
   <main>
-    <section id="desktop-pane">
-      <iframe id="agent-desktop" title="Bright Pattern Agent Desktop"
-              allow="microphone; camera; autoplay; clipboard-read; clipboard-write; display-capture"></iframe>
-    </section>
+    <!-- The adapter mounts the Agent Desktop Comm.Widget iframe in here (mountRoot). -->
+    <section id="widget-root"></section>
 
     <section id="control-pane">
       <details open>
-        <summary>Agent state</summary>
+        <summary>Session &amp; state</summary>
         <div class="row">
-          <button data-call="getState" data-callback>getState</button>
+          <button data-call="getLoginState">getLoginState</button>
+          <button data-call="openLogin">openLogin</button>
+          <button data-call="logout">logout</button>
+          <button data-call="getConfig">getConfig</button>
         </div>
         <div class="row">
-          <select id="status">
-            <option>READY</option>
-            <option>NOT_READY</option>
-            <option>AFTER_CALL_WORK</option>
-          </select>
-          <input id="reason" type="text" placeholder="reason (optional)">
-          <button id="set-status">setStatus</button>
-        </div>
-      </details>
-
-      <details open>
-        <summary>Dialing &amp; transfer</summary>
-        <div class="row">
-          <input id="number" type="text" placeholder="phone number">
-          <button data-call="dialNumber" data-args="#number">dialNumber</button>
+          <button data-call="getAgentState">getAgentState</button>
+          <button data-call="getAgentNotReadyReasons">getAgentNotReadyReasons</button>
+          <button data-call="getInteractionsState">getInteractionsState</button>
         </div>
         <div class="row">
-          <input id="service" type="text" placeholder="service name">
-          <button data-call="selectService" data-args="#service">selectService</button>
-        </div>
-        <div class="row">
-          <input id="transfer-to" type="text" placeholder="destination">
-          <button data-call="singleStepTransfer" data-args="#transfer-to">singleStepTransfer</button>
-          <button data-call="singleStepConference" data-args="#transfer-to">singleStepConference</button>
-        </div>
-        <div class="row">
-          <button data-call="mergeAllCallsIntoConference">mergeAllCallsIntoConference</button>
+          <input id="agent-state" type="text" spellcheck="false" placeholder="state">
+          <input id="agent-reason" type="text" spellcheck="false" placeholder="reason (optional)">
+          <button data-call="setAgentState" data-args="#agent-state,#agent-reason">setAgentState</button>
         </div>
       </details>
 
       <details open>
-        <summary>Complete &amp; terminate</summary>
+        <summary>Lists</summary>
         <div class="row">
-          <input id="disposition" type="text" placeholder="disposition">
-          <input id="notes" type="text" placeholder="notes (optional)">
-        </div>
-        <div class="row">
-          <button data-call="setDisposition" data-args="#disposition,#notes">setDisposition</button>
-          <button data-call="completeInteractionWithDisp" data-args="#disposition,#notes">completeInteractionWithDisp</button>
-        </div>
-        <div class="row">
-          <button data-call="terminateInteraction">terminateInteraction</button>
-          <button data-call="completeInteraction">completeInteraction</button>
+          <button data-call="getServicesList">getServicesList</button>
+          <button data-call="getService">getService</button>
+          <button data-call="getTeams">getTeams</button>
+          <button data-call="getDIDNumbersList">getDIDNumbersList</button>
+          <button data-call="getPhoneDevicesList">getPhoneDevicesList</button>
+          <button data-call="getScreenRecordingState">getScreenRecordingState</button>
         </div>
       </details>
 
       <details open>
-        <summary>Call recording</summary>
+        <summary>Interactions</summary>
         <div class="row">
-          <button data-call="startCallRecording">start</button>
-          <button data-call="stopCallRecording">stop</button>
-          <button data-call="muteCallRecording">mute</button>
-          <button data-call="unmuteCallRecording">unmute</button>
+          <input id="call-number" type="text" spellcheck="false" placeholder="phone number">
+          <button data-call="startCall" data-args="#call-number">startCall</button>
+        </div>
+        <div class="row">
+          <input id="interaction-id" type="text" spellcheck="false" placeholder="interactionId">
+        </div>
+        <div class="row">
+          <button data-call="acceptInteraction" data-args="#interaction-id">accept</button>
+          <button data-call="rejectInteraction" data-args="#interaction-id">reject</button>
+          <button data-call="switchActiveInteraction" data-args="#interaction-id">switchActive</button>
+          <button data-call="leaveInteraction" data-args="#interaction-id">leave</button>
+          <button data-call="completeInteraction" data-args="#interaction-id">complete</button>
         </div>
       </details>
 
       <details open>
-        <summary>Any method (discovered on <code>bpspat.api</code>)</summary>
+        <summary>Any method</summary>
         <div class="row">
-          <select id="generic-method"></select>
-          <label class="inline"><input id="generic-callback" type="checkbox"> append callback</label>
+          <select id="method"></select>
+          <button id="method-call">Call</button>
         </div>
-        <div class="row">
-          <input id="generic-args" type="text" spellcheck="false" placeholder='JSON args array, e.g. ["NOT_READY", "Lunch"]'>
-          <button id="generic-call">Call</button>
-        </div>
-        <div class="row">
-          <button id="rescan">Rescan API</button>
-          <span id="handler-summary" class="muted"></span>
-        </div>
+        <div id="method-args" class="row"></div>
+        <p class="muted">Values starting with <code>{ [ "</code> or equal to <code>true/false/null</code>
+          are parsed as JSON; everything else is sent as a string. Empty trailing fields are omitted.</p>
+      </details>
+
+      <details>
+        <summary>Events (* expects a response)</summary>
+        <ul id="event-list" class="muted"></ul>
       </details>
 
       <div id="log-header">
         <strong>Log</strong>
-        <button id="clear-log">Clear</button>
+        <span>
+          <label class="inline"><input id="show-raw" type="checkbox"> raw protocol traffic</label>
+          <button id="clear-log">Clear</button>
+        </span>
       </div>
       <ol id="log"></ol>
     </section>
